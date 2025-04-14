@@ -26,21 +26,6 @@ class wcjunkins(pokerstrat.Strategy):
             2: 0.7   # Late position - wider range
         }
         
-        # Preflop hand rankings
-        self.preflop_rankings = {
-            'AA': 1.0, 'KK': 0.95, 'QQ': 0.9, 'JJ': 0.85, 'TT': 0.8,
-            'AKs': 0.85, 'AQs': 0.8, 'AJs': 0.75, 'ATs': 0.7,
-            'KQs': 0.75, 'KJs': 0.7, 'KTs': 0.65,
-            'QJs': 0.7, 'QTs': 0.65,
-            'JTs': 0.65,
-            '99': 0.75, '88': 0.7, '77': 0.65, '66': 0.6, '55': 0.55,
-            'AKo': 0.7, 'AQo': 0.65, 'AJo': 0.6, 'ATo': 0.55,
-            'KQo': 0.6, 'KJo': 0.55, 'KTo': 0.5,
-            'QJo': 0.55, 'QTo': 0.5,
-            'JTo': 0.5,
-            '44': 0.5, '33': 0.45, '22': 0.4
-        }
-        
         self.blind_steal_range = {
             0: ['AA', 'KK', 'QQ', 'AKs', 'AKo'],  # Early position
             1: ['AA', 'KK', 'QQ', 'JJ', 'AKs', 'AKo', 'AQs'],  # Middle position
@@ -51,14 +36,6 @@ class wcjunkins(pokerstrat.Strategy):
             '10bb': ['AA', 'KK', 'QQ', 'JJ', 'TT', 'AKs', 'AKo', 'AQs', 'AJs', 'KQs', 'ATs', 'KJs'],
             '15bb': ['AA', 'KK', 'QQ', 'JJ', 'TT', '99', 'AKs', 'AKo', 'AQs', 'AJs', 'KQs', 'ATs', 'KJs', 'QJs'],
             '20bb': ['AA', 'KK', 'QQ', 'JJ', 'TT', '99', '88', 'AKs', 'AKo', 'AQs', 'AJs', 'KQs', 'ATs', 'KJs', 'QJs', 'JTs']
-        }
-        
-        # Bluffing opportunities
-        self.bluff_opportunities = {
-            'preflop': 0.1,  # Rarely bluff preflop
-            'flop': 0.25,    # Moderate bluffing on flop
-            'turn': 0.35,    # More bluffing on turn
-            'river': 0.4     # Most bluffing on river
         }
     
     def calculate_pot_odds(self, pot, to_call):

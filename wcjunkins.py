@@ -2,10 +2,10 @@ import random
 import pokerstrat
 from collections import Counter
 
-# My strategy for the poker AI-player (probably not good lol)
+# My strategy for the poker AI-player (the best poker player there ever was lol)
 class wcjunkins(pokerstrat.Strategy):
 
-    # Initialize the strategy
+    # Basic setup
     def __init__(self, player):
         super().__init__(player)
         self.name = "wcjunkins"
@@ -16,9 +16,9 @@ class wcjunkins(pokerstrat.Strategy):
         self.opponents = []  # Will store opponent information
         self.current_stage = 'preflop'  # Will track current game stage
         self.aggression_factor = 0.6  # Will control betting aggression (0-1)
-        self.bluff_frequency = 0.7  # Increased bluff frequency (0-1)               These two seemed to be good values against the Sklansky bots.
+        self.bluff_frequency = 0.7  # Increased bluff frequency (0-1)               These two seem to be good values against the Sklansky bots. Maybe edit them to see if I can make it more competitive.
         
-        # Position-based strategy parameters
+        # Position-based approach
         self.position_aggression = [0.3, 0.5, 0.7]  # Early, middle, late position aggression
         self.position_hand_ranges = {
             0: 0.3,  # Early position - tighter range
@@ -150,7 +150,7 @@ class wcjunkins(pokerstrat.Strategy):
         # Update stack size and position
         self.stack_size = player.stack
         
-        # Calculate position based on player's index in the table
+        # Calculate position
         total_players = len(pot.players)
         player_index = pot.players.index(player)
         
@@ -217,7 +217,7 @@ class wcjunkins(pokerstrat.Strategy):
         # If we don't have enough chips to make the minimum bet
         if to_call > player.stack:
             # Balanced all-in decisions
-            if adjusted_strength > 0.75 or total_odds > 1.8:
+            if adjusted_strength > 0.75 or total_odds > 1.8: # ============ CHANGE HERERERERERERE       ======= Hand strength and pot odds.
                 return player.bet(pot, player.stack)
             elif adjusted_strength > 0.55 and self.position == 2 and total_odds > 1.3:
                 return player.bet(pot, player.stack)
@@ -243,7 +243,7 @@ class wcjunkins(pokerstrat.Strategy):
                 hand_str += 'o'
             
             if hand_str in self.blind_steal_range[self.position]:
-                return player.bet(pot, pot.blinds[1] * 2.2)  # Balanced raise size
+                return player.bet(pot, pot.blinds[1] * 2.2)  # Raise size ===================
         
         # Adjust action weights based on hand strength, position, and pot odds
         if self.position == 0:  # Early position
@@ -281,10 +281,8 @@ class wcjunkins(pokerstrat.Strategy):
         elif r < action_weights[0] + action_weights[1]:
             return player.check_call(pot)
         else:
-            # Calculate bet amount based on hand strength, position, and pot odds
+            # Min and Max bets
             min_bet = max(pot.to_play - player.to_play, 0)
-            
-            # Find the maximum possible bet considering other players' stacks
             max_opponent_stack = max([p.stack for p in pot.players if p != player], default=0)
             max_bet = min(player.stack, max_opponent_stack, pot.to_play * 2.5)  # Balanced max bet multiplier
             
@@ -299,7 +297,7 @@ class wcjunkins(pokerstrat.Strategy):
             # Calculate the bet amount
             bet_amount = min_bet + int(bet_range * strength_multiplier * odds_multiplier)
             
-            # Ensure bet_amount is within valid bounds
+            # Make sure it is within the bounds
             bet_amount = max(min_bet, min(bet_amount, max_bet))
             
             # If we're raising against an all-in player, just call
@@ -307,280 +305,3 @@ class wcjunkins(pokerstrat.Strategy):
                 return player.check_call(pot)
             
             return player.bet(pot, bet_amount)
-
-    def preflop(self, hand, table):
-        self.current_stage = 'preflop'
-        self.stack_size = hand.stack
-        self.pot_size = table.pot
-        self.position = self.calculate_position(hand, table)
-        self.hand_strength = self.evaluate_preflop_hand(hand)
-        
-        # Position-based preflop strategy
-        if self.position == 0:  # Early position
-            if self.hand_strength < 0.6:  # Only play strong hands
-                return 'fold'
-            elif self.hand_strength < 0.8:
-                return 'call'
-            else:
-                return 'raise'
-        elif self.position == 1:  # Middle position
-            if self.hand_strength < 0.4:
-                return 'fold'
-            elif self.hand_strength < 0.7:
-                return 'call'
-            else:
-                return 'raise'
-        else:  # Late position
-            if self.hand_strength < 0.3:
-                return 'fold'
-            elif self.hand_strength < 0.6:
-                return 'call'
-            else:
-                return 'raise'
-
-    def flop(self, hand, table):
-        self.current_stage = 'flop'
-        self.hand_strength = self.evaluate_hand(hand, table)
-        self.pot_size = table.pot
-        
-        # Position-based postflop strategy
-        if self.position == 0:  # Early position
-            if self.hand_strength < 0.5:
-                return 'fold'
-            elif self.hand_strength < 0.7:
-                return 'call'
-            else:
-                return 'raise'
-        elif self.position == 1:  # Middle position
-            if self.hand_strength < 0.4:
-                return 'fold'
-            elif self.hand_strength < 0.6:
-                return 'call'
-            else:
-                return 'raise'
-        else:  # Late position
-            if self.hand_strength < 0.3:
-                return 'fold'
-            elif self.hand_strength < 0.5:
-                return 'call'
-            else:
-                return 'raise'
-
-    def turn(self, hand, table):
-        self.current_stage = 'turn'
-        self.hand_strength = self.evaluate_hand(hand, table)
-        self.pot_size = table.pot
-        
-        # Similar to flop but slightly tighter ranges
-        if self.position == 0:
-            if self.hand_strength < 0.6:
-                return 'fold'
-            elif self.hand_strength < 0.8:
-                return 'call'
-            else:
-                return 'raise'
-        elif self.position == 1:
-            if self.hand_strength < 0.5:
-                return 'fold'
-            elif self.hand_strength < 0.7:
-                return 'call'
-            else:
-                return 'raise'
-        else:
-            if self.hand_strength < 0.4:
-                return 'fold'
-            elif self.hand_strength < 0.6:
-                return 'call'
-            else:
-                return 'raise'
-
-    def river(self, hand, table):
-        self.current_stage = 'river'
-        self.hand_strength = self.evaluate_hand(hand, table)
-        self.pot_size = table.pot
-        
-        # Tightest ranges on river
-        if self.position == 0:
-            if self.hand_strength < 0.7:
-                return 'fold'
-            elif self.hand_strength < 0.9:
-                return 'call'
-            else:
-                return 'raise'
-        elif self.position == 1:
-            if self.hand_strength < 0.6:
-                return 'fold'
-            elif self.hand_strength < 0.8:
-                return 'call'
-            else:
-                return 'raise'
-        else:
-            if self.hand_strength < 0.5:
-                return 'fold'
-            elif self.hand_strength < 0.7:
-                return 'call'
-            else:
-                return 'raise'
-
-    def calculate_position(self, hand, table):
-        """Calculate position at the table (0=EP, 1=MP, 2=LP)"""
-        # Get the total number of players
-        total_players = len(table.players)
-        
-        # Get the current player's index
-        player_index = table.players.index(hand)
-        
-        # Calculate position based on player count
-        if total_players <= 6:
-            # For 6 or fewer players, use 3 positions
-            if player_index <= 1:  # First two positions
-                return 0  # Early position
-            elif player_index <= 3:  # Middle two positions
-                return 1  # Middle position
-            else:
-                return 2  # Late position
-        else:
-            # For more than 6 players, use 3 positions with more players in EP
-            if player_index <= 2:  # First three positions
-                return 0  # Early position
-            elif player_index <= 4:  # Middle two positions
-                return 1  # Middle position
-            else:
-                return 2  # Late position
-
-    def evaluate_preflop_hand(self, hand):
-        """Evaluate preflop hand strength (0-1) based on standard poker hand rankings"""
-        # Get the two cards
-        card1, card2 = hand.cards
-        
-        # Create hand notation (e.g., 'AKs' for Ace-King suited)
-        hand_str = self._create_preflop_notation(card1, card2)
-        
-        # Look up the hand strength in our rankings
-        if hand_str in self.preflop_rankings:
-            return self.preflop_rankings[hand_str]
-        
-        # For hands not in our rankings, calculate a basic strength
-        return self._calculate_basic_preflop_strength(card1, card2)
-
-    def _create_preflop_notation(self, card1, card2):
-        """Create standard poker notation for preflop hands"""
-        # Get ranks and suits
-        rank1, suit1 = card1.rank, card1.suit
-        rank2, suit2 = card2.rank, card2.suit
-        
-        # Convert ranks to standard notation
-        rank_map = {11: 'J', 12: 'Q', 13: 'K', 14: 'A'}
-        rank1_str = rank_map.get(rank1, str(rank1))
-        rank2_str = rank_map.get(rank2, str(rank2))
-        
-        # Determine if suited
-        suited = 's' if suit1 == suit2 else 'o'
-        
-        # Create hand notation (higher rank first)
-        if rank1 > rank2:
-            return f"{rank1_str}{rank2_str}{suited}"
-        else:
-            return f"{rank2_str}{rank1_str}{suited}"
-
-    def _calculate_basic_preflop_strength(self, card1, card2):
-        """Calculate basic preflop hand strength for unranked hands"""
-        strength = 0.0
-        
-        # High card bonus
-        high_card = max(card1.rank, card2.rank)
-        if high_card >= 12:  # Q or higher
-            strength += 0.2
-        elif high_card >= 10:  # T or J
-            strength += 0.1
-            
-        # Pair bonus
-        if card1.rank == card2.rank:
-            strength += 0.3
-            
-        # Suited bonus
-        if card1.suit == card2.suit:
-            strength += 0.1
-            
-        # Connected bonus (e.g., 67, 89)
-        if abs(card1.rank - card2.rank) == 1:
-            strength += 0.1
-            
-        return min(strength, 0.9)  # Cap at 0.9 for non-premium hands
-
-    def evaluate_hand(self, hand, table):
-        """Evaluate current hand strength including community cards (0-1)"""
-        # Combine hole cards and community cards
-        all_cards = hand.cards + table.community_cards
-        
-        # If we don't have enough cards yet, return preflop evaluation
-        if len(all_cards) < 5:
-            return self.evaluate_preflop_hand(hand)
-            
-        # Evaluate the best possible hand
-        hand_rank = self._evaluate_hand_rank(all_cards)
-        
-        # Convert hand rank to strength (0-1)
-        return self._hand_rank_to_strength(hand_rank)
-
-    def _evaluate_hand_rank(self, cards):
-        """Evaluate the rank of a poker hand (higher is better)"""
-        # Count ranks and suits
-        ranks = [card.rank for card in cards]
-        suits = [card.suit for card in cards]
-        
-        rank_counts = Counter(ranks)
-        suit_counts = Counter(suits)
-        
-        # Check for flush
-        flush = any(count >= 5 for count in suit_counts.values())
-        
-        # Check for straight
-        unique_ranks = sorted(set(ranks))
-        straight = False
-        if len(unique_ranks) >= 5:
-            for i in range(len(unique_ranks) - 4):
-                if unique_ranks[i+4] - unique_ranks[i] == 4:
-                    straight = True
-                    break
-        
-        # Check for pairs, trips, quads
-        pairs = [rank for rank, count in rank_counts.items() if count == 2]
-        trips = [rank for rank, count in rank_counts.items() if count == 3]
-        quads = [rank for rank, count in rank_counts.items() if count == 4]
-        
-        # Determine hand rank
-        if flush and straight:
-            return 8  # Straight flush
-        elif quads:
-            return 7  # Four of a kind
-        elif trips and pairs:
-            return 6  # Full house
-        elif flush:
-            return 5  # Flush
-        elif straight:
-            return 4  # Straight
-        elif trips:
-            return 3  # Three of a kind
-        elif len(pairs) >= 2:
-            return 2  # Two pair
-        elif pairs:
-            return 1  # One pair
-        else:
-            return 0  # High card
-
-    def _hand_rank_to_strength(self, hand_rank):
-        """Convert hand rank to strength (0-1)"""
-        # Map hand ranks to strength values
-        strength_map = {
-            0: 0.1,  # High card
-            1: 0.3,  # One pair
-            2: 0.5,  # Two pair
-            3: 0.6,  # Three of a kind
-            4: 0.7,  # Straight
-            5: 0.8,  # Flush
-            6: 0.85, # Full house
-            7: 0.9,  # Four of a kind
-            8: 1.0   # Straight flush
-        }
-        return strength_map.get(hand_rank, 0.0)
